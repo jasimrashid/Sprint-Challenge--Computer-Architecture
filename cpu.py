@@ -22,6 +22,12 @@ op_JMP = 0b01010100
 op_JNE = 0b01010110
 op_AND_OP = 0b10101000
 op_OR_OP = 0b10101010
+op_XOR = 0b10101011
+op_NOT_OP = 0b01101001
+op_SHL = 0b10101100
+op_SHR = 0b10101101
+op_MOD = 0b10100100
+op_ADDI = 0b01101000
 
 class CPU:
     """Main CPU class."""
@@ -58,6 +64,11 @@ class CPU:
         self.branchtable[op_JNE] = self.jne
         self.branchtable[op_AND_OP] = self.and_op
         self.branchtable[op_OR_OP] = self.or_op
+        self.branchtable[op_XOR] = self.xor
+        self.branchtable[op_NOT_OP] = self.not_op
+        self.branchtable[op_SHL] = self.shl
+        self.branchtable[op_SHR] = self.shr
+        self.branchtable[op_ADDI] = self.addi
         
         
 
@@ -178,6 +189,10 @@ class CPU:
             self.reg[reg_a] = self.reg[reg_a] >> self.reg[reg_b]
         elif op == "SHL":
             self.reg[reg_a] = self.reg[reg_a] << self.reg[reg_b]
+        elif op == "MOD":
+            self.reg[reg_a] %= self.reg[reg_b]
+        elif op == "ADDI":
+            self.reg[reg_a] += reg_b #intentional misnomer
         else:
             raise Exception("Unsupported ALU operation")
         
@@ -228,10 +243,18 @@ class CPU:
     def add(self):
         self.alu(op='ADD',reg_a=self.ram_read(self.pc+1),reg_b=self.ram_read(self.pc+2))
         self.pc += 3
+        
+    def addi(self):
+        self.alu(op='ADDI',reg_a=self.ram_read(self.pc+1),reg_b=self.ram_read(self.pc+2))
+        self.pc += 3
 
     def and_op(self):
         # bitwise-AND the value in two registers and store the result in registerA.
         self.alu(op='AND',reg_a=self.ram_read(self.pc+1),reg_b=self.ram_read(self.pc+2))
+        self.pc += 3
+
+    def mod(self):
+        self.alu(op='MOD',reg_a=self.ram_read(self.pc+1),reg_b=self.ram_read(self.pc+2))
         self.pc += 3
 
     def not_op(self):
