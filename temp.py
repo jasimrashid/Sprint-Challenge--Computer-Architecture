@@ -1,14 +1,15 @@
-# a = 0
-# b = 1
-# a &= b
-# print(a)
-# a |= b
-# print(a)
+import signal
+import sys
+import time
+import threading
 
+def signal_handler(signal, frame):
+    print('You pressed Ctrl+C!')
+    sys.exit(0)
 
-
-def alu(op, reg_a, reg_b=None):
-    print(op, reg_a, reg_b)
-
-
-alu(op='op',reg_a='reg a',reg_b='reg b')
+signal.signal(signal.SIGINT, signal_handler)
+print('Press Ctrl+C')
+forever = threading.Event()
+forever.wait()
+while True:
+    continue

@@ -12,5 +12,7 @@ cpu = CPU()
 # cpu.load('examples/stack.ls8')
 # cpu.load('examples/call.ls8')
 # cpu.load('examples/printstr.ls8')
-cpu.load('sctest.ls8')
+cpu.load('sctest.ls8') #MVP
+# cpu.load('interrupts.ls8') #MVP
+
 cpu.run()

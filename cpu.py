@@ -1,6 +1,9 @@
 """CPU functionality."""
 
 import sys
+import signal
+import time
+import threading
 
 #TODO: use 
 op_LDI = 0b10000010
@@ -28,6 +31,11 @@ op_SHL = 0b10101100
 op_SHR = 0b10101101
 op_MOD = 0b10100100
 op_ADDI = 0b01101000
+op_ST = 0b10000100
+
+def signal_handler(self, signal, frame):
+    print('breaking out of loop')
+    sys.exit(0)
 
 class CPU:
     """Main CPU class."""
@@ -37,7 +45,7 @@ class CPU:
         self.pc = None #PROGRAM COUNTER
         ir = None
         self.ram = [None] * 256
-        self.reg = [None] * 8
+        self.reg = [0] * 8
         self.FL = [0] * 8
         IM = 5
         IS = 6
@@ -69,8 +77,11 @@ class CPU:
         self.branchtable[op_SHL] = self.shl
         self.branchtable[op_SHR] = self.shr
         self.branchtable[op_ADDI] = self.addi
+        self.branchtable[op_ST] = self.st
         
-        
+
+
+ 
 
     def load_hardcoded(self):
         program = [
@@ -152,6 +163,7 @@ class CPU:
 
 
     def jmp(self):
+        # breakpoint()
         self.pc = self.reg[self.ram_read(self.pc+1)]
 
     def jne(self):
@@ -292,19 +304,46 @@ class CPU:
         self.reg[self.SP] += 1
         self.pc += 2
 
+    def st(self):
+        #Store value in registerB in the address stored in registerA.
+        self.reg[self.ram_read(self.pc+1)] = self.reg[self.ram_read(self.pc+2)]
+        self.pc += 3
+
     def run(self): #TODO
         """Run the CPU."""
         self.running = True
         self.pc = 0
 
+        # prior to instruction fetch
+        # signal.signal(signal.SIGINT, signal_handler)
+        # print('Press Ctrl+C to break')
+        # forever = threading.Event()
+        # forever.wait()
         while self.running:
             ir = self.ram[self.pc]
 
+            #prior to instruction fetch.
+            #(1) IM & IS-->maskedInterrupts 
+
+            maskedInterrupts = self.reg[5]&self.reg[6]
+
+            # (2) check each bit of maskedinterrupts. if 
+            # bit is found, follow next steps
+            interrupt_flag = ((maskedInterrupts&0b10000000)>>7) | ((maskedInterrupts&0b0100000)>>6) | ((maskedInterrupts&0b00100000)>>5) |((maskedInterrupts&0b00010000)>>4) | ((maskedInterrupts&0b00001000)>>3) | ((maskedInterrupts&0b00000100)>>2) | ((maskedInterrupts&0b00000010)>>1) | ((maskedInterrupts&0b00000001))
+            # print(ir, self.pc,interrupt_flag)
             try:
                 self.branchtable[ir]()
+                if interrupt_flag:
+                    print('yeay')
+                    breakpoint()
+
+
             except Exception:
                 print(f"Unknown instruction")
+                breakpoint()
 
+
+ 
 
 
     def ram_read(self, address): #TODO
